@@ -60,6 +60,7 @@
             margin-top: 20px;
             color: #d32f2f;
             font-size: 14px;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -75,52 +76,55 @@
     </div>
 
     <script>
-        // 1. تهيئة مكتبة Pi وإخبارها إننا في وضع الإنتاج (مهم جداً هنا false)
-        Pi.init({ version: "2.0", sandbox: false });
+        // 1. تهيئة مكتبة Pi بوضع التجربة المتوافق مع الـ Testnet
+        Pi.init({ version: "2.0", sandbox: true });
 
         // دالة للتعامل مع المدفوعات المعلقة
         function onIncompletePaymentFound(payment) {
             console.log("تم العثور على دفعة غير مكتملة", payment);
         }
 
-        // 2. طلب المصادقة + إذن الدفع
+        // 2. طلب المصادقة مع إذن المدفوعات (payments)
         Pi.authenticate(['username', 'payments'], onIncompletePaymentFound)
             .then(function(authResults) {
-                console.log("تم تسجيل الدخول بنجاح يا شفت! المستخدم: ", authResults.user.username);
+                console.log("تم تسجيل الدخول بنجاح! المستخدم: ", authResults.user.username);
             })
             .catch(function(error) {
                 console.error("خطأ في المصادقة:", error);
-                document.getElementById('status-message').innerText = "يرجى فتح الموقع من متصفح Pi Network";
+                document.getElementById('status-message').style.color = "#d32f2f";
+                document.getElementById('status-message').innerText = "يرجى فتح الموقع من متصفح Pi Network أو عمل تحديث للكاش.";
             });
 
-        // 3. دالة الدفع اللي بتشتغل لما تضغط على الزر
+        // 3. دالة الدفع عند ضغط الزر
         function processPayment() {
-            // تنظيف أي رسالة خطأ سابقة
             document.getElementById('status-message').innerText = "";
 
             const paymentData = {
-                amount: 1.5, // سعر المنتج
-                memo: "شراء توب هزاز سويسري", // وصف العملية
-                metadata: { productId: "top-hazzaz-001" } // بيانات إضافية للمنتج
+                amount: 1.5,
+                memo: "شراء توب هزاز سويسري",
+                metadata: { productId: "top-hazzaz-001" }
             };
 
             const paymentCallbacks = {
                 onReadyForServerApproval: function(paymentId) {
-                    console.log("في انتظار موافقة السيرفر لعملية الدفع: ", paymentId);
+                    console.log("في انتظار موافقة السيرفر: ", paymentId);
+                    document.getElementById('status-message').style.color = "green";
+                    document.getElementById('status-message').innerText = "تم فتح نافذة الدفع بنجاح! معرّف الدفع: " + paymentId;
                 },
                 onReadyForServerCompletion: function(paymentId, txid) {
                     console.log("جاهز لإكمال العملية: ", paymentId, txid);
                 },
                 onCancel: function(paymentId) {
-                    document.getElementById('status-message').innerText = "تم إلغاء الدفع يا مكينة.";
+                    document.getElementById('status-message').style.color = "orange";
+                    document.getElementById('status-message').innerText = "تم إلغاء العملية.";
                 },
                 onError: function(error, payment) {
                     console.error("خطأ في عملية الدفع:", error);
-                    document.getElementById('status-message').innerText = "حصل خطأ، حاول تاني.";
+                    document.getElementById('status-message').style.color = "#d32f2f";
+                    document.getElementById('status-message').innerText = "حصل خطأ، حاول مجدداً.";
                 }
             };
 
-            // تشغيل نافذة الدفع
             Pi.createPayment(paymentData, paymentCallbacks);
         }
     </script>
