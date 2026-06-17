@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سوق توتيل</title>
-    <!-- تضمين مكتبة شبكة Pi الأساسية -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body {
@@ -20,7 +19,7 @@
         .header-title {
             font-size: 28px;
             font-weight: bold;
-            color: #6e4c41; /* لون بني مناسب للتصميم */
+            color: #6e4c41;
             margin-bottom: 30px;
         }
         .product-card {
@@ -71,22 +70,20 @@
     <div class="product-card">
         <div class="product-name">توب هزاز سويسري</div>
         <div class="price">π 1.5</div>
-        <!-- زر الشراء اللي بيشغل دالة الدفع -->
         <button class="buy-btn" onclick="processPayment()">شراء بالـ Pi</button>
         <div id="status-message"></div>
     </div>
 
     <script>
-        // 1. تهيئة مكتبة Pi وإخبارها إننا في وضع الاختبار (Testnet)
-        Pi.init({ version: "2.0", sandbox: true });
+        // 1. تهيئة مكتبة Pi وإخبارها إننا في وضع الإنتاج (مهم جداً هنا false)
+        Pi.init({ version: "2.0", sandbox: false });
 
-        // دالة للتعامل مع المدفوعات المعلقة (لو التطبيق قفل فجأة قبل الدفع يكتمل)
+        // دالة للتعامل مع المدفوعات المعلقة
         function onIncompletePaymentFound(payment) {
             console.log("تم العثور على دفعة غير مكتملة", payment);
-            // هنا في التطبيقات الحقيقية بيتم إرسالها للسيرفر لإكمالها
         }
 
-        // 2. طلب المصادقة + إذن الدفع (ده الزيت اللي كان ناقص وحليناه)
+        // 2. طلب المصادقة + إذن الدفع
         Pi.authenticate(['username', 'payments'], onIncompletePaymentFound)
             .then(function(authResults) {
                 console.log("تم تسجيل الدخول بنجاح يا شفت! المستخدم: ", authResults.user.username);
@@ -110,8 +107,6 @@
             const paymentCallbacks = {
                 onReadyForServerApproval: function(paymentId) {
                     console.log("في انتظار موافقة السيرفر لعملية الدفع: ", paymentId);
-                    // عشان ده تطبيق فرونت إند بس، العملية حتقيف هنا في وضع الاختبار، 
-                    // لكن الشاشة بتاعت Pi حتفتح معاك وده المهم لإكمال التوثيق.
                 },
                 onReadyForServerCompletion: function(paymentId, txid) {
                     console.log("جاهز لإكمال العملية: ", paymentId, txid);
