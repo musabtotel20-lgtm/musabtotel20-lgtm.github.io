@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوق توتيل | للتياب السودانية</title>
+    <!-- استدعاء مكتبة Pi -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        :root { --primary-color: #6d4c41; --secondary-color: #f5f5f5; --text-color: #333; --pi-color: #f3a223; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--secondary-color); color: var(--text-color); margin: 0; padding: 0; }
+        header { background-color: var(--primary-color); color: white; text-align: center; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { margin: 0; font-size: 2rem; }
+        header p { margin: 5px 0 0; font-size: 1rem; opacity: 0.9; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .product-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; padding-bottom: 1rem; }
+        .product-image { width: 100%; height: 250px; background-color: #ddd; object-fit: cover; }
+        .product-title { font-size: 1.2rem; margin: 1rem 0 0.5rem; color: var(--primary-color); }
+        .product-desc { font-size: 0.9rem; color: #666; margin-bottom: 1rem; padding: 0 1rem; }
+        .product-price { font-size: 1.3rem; font-weight: bold; color: var(--pi-color); margin-bottom: 1rem; }
+        .buy-btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 25px; cursor: pointer; width: 80%; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>سوق توتيل</h1>
+        <p>أرقى تصاميم التياب السودانية، حصرياً بعملة Pi</p>
+    </header>
+    <div class="container">
+        <div class="products-grid">
+            <div class="product-card">
+                <img src="https://via.placeholder.com/300x250.png?text=Thob+1" alt="توب هزاز" class="product-image">
+                <h3 class="product-title">توب هزاز سويسري</h3>
+                <p class="product-desc">تصميم حصري وألوان زاهية، خامة ممتازة وتطريز راقي.</p>
+                <div class="product-price">π 1.5</div>
+                <button class="buy-btn" onclick="payWithPi(1.5, 'توب هزاز سويسري')">شراء بالـ Pi</button>
+            </div>
+            <div class="product-card">
+                <img src="https://via.placeholder.com/300x250.png?text=Thob+2" alt="توب توتال" class="product-image">
+                <h3 class="product-title">توب توتال أصلي</h3>
+                <p class="product-desc">فخامة التوتال بتصاميم عصرية تناسب كل المناسبات.</p>
+                <div class="product-price">π 2.0</div>
+                <button class="buy-btn" onclick="payWithPi(2.0, 'توب توتال أصلي')">شراء بالـ Pi</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        Pi.init({ version: "2.0", sandbox: true });
+        function payWithPi(amount, productName) {
+            alert("تم إرسال طلب الشراء لشبكة Pi: " + productName + " بقيمة " + amount + " Pi");
+            Pi.createPayment({
+                amount: amount,
+                memo: "شراء " + productName + " من سوق توتيل",
+                metadata: { product: productName },
+            }, {
+                onReadyForServerApproval: function(paymentId) { alert("الدفعة منتظرة التأكيد.. رقمها: " + paymentId); },
+                onReadyForServerCompletion: function(paymentId, txid) { alert("نجاح! المعاملة تمت رقم: " + txid); },
+                onCancel: function(paymentId) { alert("المشتري ألغى العملية."); },
+                onError: function(error, paymentId) { console.error("خطأ:", error); }
+            });
+        }
+    </script>
+</body>
+</html>
 
