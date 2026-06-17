@@ -18,47 +18,66 @@
     <div class="card">
         <h2>توب هزاز سويسري</h2>
         <h2 style="color: #8d6e63;">π 1.5</h2>
-        
         <button onclick="startPiPayment()">شراء بالـ Pi</button>
         <p id="msg"></p>
     </div>
 
     <script>
+        // مفتاح الـ API الخاص بك مضاف هنا بنجاح
+        const API_KEY = "1xirlfya1hvy6ac5v9xxoplnzzxbslvicbbgcjbelg4xzpgkyd09oie1iiqz1jsx";
+
         function startPiPayment() {
             var msg = document.getElementById('msg');
             msg.style.color = "blue";
-            msg.innerText = "جاري الاتصال بالشبكة... انتظر";
+            msg.innerText = "جاري الاتصال بالشبكة...";
 
-            try {
-                // التهيئة بتشتغل بس لما تضغط الزر
-                Pi.init({ version: "2.0", sandbox: true });
+            Pi.init({ version: "2.0", sandbox: true });
 
-                // المصادقة
-                Pi.authenticate(['payments'], function(payment) {
-                    console.log("دفعة معلقة", payment);
-                }).then(function(auth) {
-                    msg.style.color = "green";
-                    msg.innerText = "تم الربط! جاري فتح الدفع...";
-                    
-                    // طلب الدفع
-                    Pi.createPayment({
-                        amount: 1.5,
-                        memo: "شراء توب هزاز سويسري",
-                        metadata: { item: "top" }
-                    }, {
-                        onReadyForServerApproval: function(id) { msg.innerText = "في انتظار السيرفر..."; },
-                        onReadyForServerCompletion: function(id, tx) { msg.innerText = "تم الدفع بنجاح يا شفت!"; },
-                        onCancel: function(id) { msg.style.color = "orange"; msg.innerText = "ألغيت الدفع."; },
-                        onError: function(err, id) { msg.style.color = "red"; msg.innerText = "خطأ في الدفع."; }
-                    });
-                }).catch(function(err) {
-                    msg.style.color = "red";
-                    msg.innerText = "اضغط على الزر مرة تانية بعد 3 ثواني.";
+            Pi.authenticate(['payments'], function(payment) {
+                console.log("دفعة معلقة", payment);
+            }).then(function(auth) {
+                msg.style.color = "green";
+                msg.innerText = "تم الربط! جاري فتح الدفع...";
+                
+                Pi.createPayment({
+                    amount: 1.5,
+                    memo: "شراء توب هزاز سويسري",
+                    metadata: { item: "top" }
+                }, {
+                    onReadyForServerApproval: function(paymentId) {
+                        msg.innerText = "جاري إعطاء الموافقة التلقائية للشبكة...";
+                        
+                        // إرسال الموافقة مباشرة باستخدام المفتاح
+                        fetch("https://corsproxy.io/?https://api.minepi.com/v2/payments/" + paymentId + "/approve", {
+                            method: "POST",
+                            headers: { "Authorization": "Key " + API_KEY }
+                        }).then(response => {
+                            msg.innerText = "تمت الموافقة من السيرفر! كمل الدفع من الشاشة الخرجت ليك.";
+                        });
+                    },
+                    onReadyForServerCompletion: function(paymentId, txid) {
+                        msg.innerText = "جاري تأكيد استلام الأموال...";
+                        
+                        // إرسال تأكيد الاستلام للشبكة
+                        fetch("https://corsproxy.io/?https://api.minepi.com/v2/payments/" + paymentId + "/complete", {
+                            method: "POST",
+                            headers: { 
+                                "Authorization": "Key " + API_KEY,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ txid: txid })
+                        }).then(response => {
+                            msg.style.color = "green";
+                            msg.innerText = "ألف مبروك! تمت العملية بنجاح تامة.";
+                        });
+                    },
+                    onCancel: function(paymentId) { msg.style.color = "orange"; msg.innerText = "ألغيت الدفع."; },
+                    onError: function(error, payment) { msg.style.color = "red"; msg.innerText = "خطأ في الدفع."; }
                 });
-            } catch(e) {
+            }).catch(function(error) {
                 msg.style.color = "red";
-                msg.innerText = "جاري تحميل المكتبة، حاول تاني.";
-            }
+                msg.innerText = "اضغط على الزر مرة تانية بعد 3 ثواني.";
+            });
         }
     </script>
 </body>
