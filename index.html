@@ -1,38 +1,220 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوق توتيل</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
-        .product { background: white; padding: 20px; margin: 10px; border-radius: 10px; }
-        button { background: #6d4c41; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h1>سوق توتيل</h1>
-    <div class="product">
-        <h3>توب هزاز سويسري</h3>
-        <p>السعر: π 1.5</p>
-        <button onclick="payWithPi(1.5, 'توب هزاز')">شراء بالـ Pi</button>
-    </div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script>
-        Pi.init({ version: "2.0", sandbox: true });
-        function payWithPi(amount, name) {
-            Pi.createPayment({
-                amount: amount,
-                memo: "شراء " + name,
-                metadata: { product: name },
-            }, {
-                onReadyForServerApproval: function(id) { alert("تم الطلب: " + id); },
-                onReadyForServerCompletion: function(id, tx) { alert("نجح! المعاملة: " + tx); },
-                onCancel: function(id) { alert("تم الإلغاء"); },
-                onError: function(err, id) { alert("خطأ: " + err); }
-            });
-        }
-    </script>
+<title>سوق توتيل</title>
+
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Tahoma,sans-serif;
+    background:#f5f5f5;
+    text-align:center;
+    padding:30px;
+}
+
+h1{
+    color:#5d4037;
+}
+
+.product{
+    max-width:350px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+
+.price{
+    font-size:20px;
+    color:#795548;
+}
+
+button{
+    background:#6d4c41;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    width:100%;
+    font-size:16px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+button:disabled{
+    opacity:.5;
+}
+
+#status{
+    margin-top:20px;
+    color:#444;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🛒 سوق توتيل</h1>
+
+<div class="product">
+
+<h2>توب هزاز سويسري</h2>
+
+<p class="price">
+السعر: π 1.5
+</p>
+
+<button id="buyBtn">
+شراء بالـ Pi
+</button>
+
+</div>
+
+<p id="status"></p>
+
+<script>
+
+// تفعيل Pi
+Pi.init({
+    version: "2.0",
+    sandbox: true
+});
+
+const statusText =
+document.getElementById("status");
+
+const buyBtn =
+document.getElementById("buyBtn");
+
+buyBtn.addEventListener(
+"click",
+() => payWithPi(
+1.5,
+"توب هزاز سويسري"
+)
+);
+
+async function payWithPi(amount,name){
+
+buyBtn.disabled = true;
+
+try{
+
+Pi.createPayment(
+{
+amount,
+memo:`شراء ${name}`,
+metadata:{
+product:name
+}
+},
+
+{
+
+async onReadyForServerApproval(paymentId){
+
+statusText.innerText =
+"⏳ جاري اعتماد الدفع...";
+
+await fetch(
+"/approve-payment",
+{
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:JSON.stringify({
+paymentId
+})
+}
+);
+
+},
+
+async onReadyForServerCompletion(
+paymentId,
+txid
+){
+
+statusText.innerText =
+"⏳ جاري تأكيد العملية...";
+
+await fetch(
+"/complete-payment",
+{
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:JSON.stringify({
+paymentId,
+txid
+})
+}
+);
+
+statusText.innerText =
+"✅ تم الشراء بنجاح";
+
+},
+
+onCancel(){
+
+statusText.innerText =
+"❌ تم إلغاء الدفع";
+
+buyBtn.disabled = false;
+
+},
+
+onError(error){
+
+console.error(error);
+
+statusText.innerText =
+"⚠️ حدث خطأ أثناء الدفع";
+
+buyBtn.disabled = false;
+
+}
+
+}
+
+);
+
+}
+catch(e){
+
+statusText.innerText =
+"فشل تشغيل الدفع";
+
+buyBtn.disabled = false;
+
+}
+
+}
+
+</script>
+
 </body>
 </html>
