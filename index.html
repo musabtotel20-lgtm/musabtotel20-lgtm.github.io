@@ -23,8 +23,8 @@
     </div>
 
     <script>
-        // مفتاح الـ API الخاص بك مضاف هنا بنجاح
-        const API_KEY = "1xirlfya1hvy6ac5v9xxoplnzzxbslvicbbgcjbelg4xzpgkyd09oie1iiqz1jsx";
+        // تم وضع مفتاح الـ API الجديد هنا بنجاح يا شفت
+        const API_KEY = "Kkdorsxjbvpcboqkhsrldyhg2noabquonjxkpdjzyl0ymipglf1d3niymdycukyb";
 
         function startPiPayment() {
             var msg = document.getElementById('msg');
@@ -47,18 +47,17 @@
                     onReadyForServerApproval: function(paymentId) {
                         msg.innerText = "جاري إعطاء الموافقة التلقائية للشبكة...";
                         
-                        // إرسال الموافقة مباشرة باستخدام المفتاح
+                        // إرسال الموافقة السرية باستخدام مفتاحك الجديد
                         fetch("https://corsproxy.io/?https://api.minepi.com/v2/payments/" + paymentId + "/approve", {
                             method: "POST",
                             headers: { "Authorization": "Key " + API_KEY }
                         }).then(response => {
-                            msg.innerText = "تمت الموافقة من السيرفر! كمل الدفع من الشاشة الخرجت ليك.";
+                            msg.innerText = "تمت الموافقة! كمل الدفع من الشاشة الخرجت ليك.";
                         });
                     },
                     onReadyForServerCompletion: function(paymentId, txid) {
                         msg.innerText = "جاري تأكيد استلام الأموال...";
                         
-                        // إرسال تأكيد الاستلام للشبكة
                         fetch("https://corsproxy.io/?https://api.minepi.com/v2/payments/" + paymentId + "/complete", {
                             method: "POST",
                             headers: { 
