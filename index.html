@@ -1,200 +1,262 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>سوق توتيل</title>
 
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 
 <style>
-*{
-    box-sizing:border-box;
-}
 
 body{
-    margin:0;
-    font-family:Tahoma,sans-serif;
-    background:#f5f5f5;
-    text-align:center;
-    padding:30px;
+margin:0;
+padding:25px;
+background:#f4f4f4;
+font-family:Tahoma;
+text-align:center;
 }
 
 h1{
-    color:#5d4037;
+color:#6d4c41;
+margin-bottom:40px;
 }
 
 .product{
-    max-width:350px;
-    margin:auto;
-    background:white;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 4px 12px rgba(0,0,0,.1);
+
+background:white;
+
+max-width:420px;
+
+margin:auto;
+
+padding:30px;
+
+border-radius:20px;
+
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}
+
+.product h2{
+font-size:28px;
 }
 
 .price{
-    font-size:20px;
-    color:#795548;
+
+font-size:34px;
+
+color:#8d6e63;
+
+margin:30px;
+
 }
 
 button{
-    background:#6d4c41;
-    color:white;
-    border:none;
-    padding:12px 20px;
-    border-radius:10px;
-    cursor:pointer;
-    width:100%;
-    font-size:16px;
-}
 
-button:hover{
-    opacity:.9;
+width:100%;
+
+padding:18px;
+
+font-size:22px;
+
+border:none;
+
+border-radius:15px;
+
+background:#8d6e63;
+
+color:white;
+
+cursor:pointer;
+
 }
 
 button:disabled{
-    opacity:.5;
+
+opacity:.5;
+
 }
 
 #status{
-    margin-top:20px;
-    color:#444;
+
+margin-top:30px;
+
+font-size:20px;
+
+color:#444;
+
 }
+
 </style>
 
 </head>
 
 <body>
 
-<h1>🛒 سوق توتيل</h1>
+<h1>
+🛒 سوق توتيل
+</h1>
 
 <div class="product">
 
-<h2>توب هزاز سويسري</h2>
+<h2>
+توب هزاز سويسري
+</h2>
 
-<p class="price">
-السعر: π 1.5
-</p>
+<div class="price">
+π 1.5
+</div>
 
-<button id="buyBtn">
+<button id="buy">
 شراء بالـ Pi
 </button>
 
 </div>
 
-<p id="status"></p>
+<div id="status"></div>
 
 <script>
 
-// تفعيل Pi
-Pi.init({
-    version: "2.0",
-    sandbox: true
-});
-
-const statusText =
+const statusBox =
 document.getElementById("status");
 
 const buyBtn =
-document.getElementById("buyBtn");
+document.getElementById("buy");
 
-buyBtn.addEventListener(
-"click",
-() => payWithPi(
-1.5,
-"توب هزاز سويسري"
-)
-);
-
-async function payWithPi(amount,name){
-
-buyBtn.disabled = true;
+async function start(){
 
 try{
 
-Pi.createPayment(
+if(!window.Pi){
+
+statusBox.innerText =
+"Pi Browser غير مكتشف";
+
+return;
+
+}
+
+await Pi.init({
+
+version:"2.0",
+
+sandbox:false
+
+});
+
+statusBox.innerText =
+"✅ جاهز للدفع";
+
+}
+catch(err){
+
+statusBox.innerText =
+"خطأ التهيئة: "
++ err.message;
+
+}
+
+}
+
+start();
+
+buyBtn.onclick =
+async function(){
+
+buyBtn.disabled=true;
+
+try{
+
+await Pi.createPayment(
+
 {
-amount,
-memo:`شراء ${name}`,
+
+amount:1.5,
+
+memo:
+"شراء توب هزاز سويسري",
+
 metadata:{
-product:name
+
+product:
+"top"
+
 }
+
 },
 
 {
 
-async onReadyForServerApproval(paymentId){
+onReadyForServerApproval:
 
-statusText.innerText =
-"⏳ جاري اعتماد الدفع...";
+async function(paymentId){
 
-await fetch(
-"/approve-payment",
-{
-method:"POST",
+statusBox.innerText =
+"⏳ جاري اعتماد العملية";
 
-headers:{
-"Content-Type":
-"application/json"
-},
-
-body:JSON.stringify({
+console.log(
+"APPROVE",
 paymentId
-})
-}
 );
 
+/*
+ضع API هنا لاحقاً
+*/
+
 },
 
-async onReadyForServerCompletion(
+onReadyForServerCompletion:
+
+async function(
 paymentId,
 txid
 ){
 
-statusText.innerText =
-"⏳ جاري تأكيد العملية...";
+statusBox.innerText =
+"✅ تم الدفع";
 
-await fetch(
-"/complete-payment",
-{
-method:"POST",
-
-headers:{
-"Content-Type":
-"application/json"
-},
-
-body:JSON.stringify({
+console.log(
 paymentId,
 txid
-})
-}
 );
-
-statusText.innerText =
-"✅ تم الشراء بنجاح";
 
 },
 
-onCancel(){
+onCancel:
 
-statusText.innerText =
-"❌ تم إلغاء الدفع";
+function(){
 
-buyBtn.disabled = false;
+statusBox.innerText =
+"❌ تم الإلغاء";
+
+buyBtn.disabled=false;
 
 },
 
-onError(error){
+onError:
 
-console.error(error);
+function(error){
 
-statusText.innerText =
-"⚠️ حدث خطأ أثناء الدفع";
+console.log(error);
 
-buyBtn.disabled = false;
+statusBox.innerText =
+"⚠️ "
++
+
+(
+error.message
+||
+
+JSON.stringify(
+error
+)
+
+);
+
+buyBtn.disabled=false;
 
 }
 
@@ -203,18 +265,30 @@ buyBtn.disabled = false;
 );
 
 }
-catch(e){
+catch(err){
 
-statusText.innerText =
-"فشل تشغيل الدفع";
+statusBox.innerText =
+"فشل: "
++
 
-buyBtn.disabled = false;
+(
+err.message
+||
+
+JSON.stringify(
+err
+)
+
+);
+
+buyBtn.disabled=false;
 
 }
 
-}
+};
 
 </script>
 
 </body>
+
 </html>
